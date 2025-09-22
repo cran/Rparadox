@@ -5,6 +5,10 @@ knitr::opts_chunk$set(
 )
 
 ## ----eval=FALSE---------------------------------------------------------------
+# # stable version from CRAN
+# install.packages("Rparadox")
+
+## ----eval=FALSE---------------------------------------------------------------
 # # install.packages("devtools")
 # devtools::install_github("celebithil/Rparadox")
 

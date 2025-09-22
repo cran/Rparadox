@@ -348,47 +348,49 @@ walk you through the basic usage of the package.</p>
 </div>
 <div id="installation" class="section level2">
 <h2>Installation</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># stable version from CRAN</span></span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;Rparadox&quot;</span>)</span></code></pre></div>
 <p>You can install the development version from GitHub:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="co"># install.packages(&quot;devtools&quot;)</span></span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;celebithil/Rparadox&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># install.packages(&quot;devtools&quot;)</span></span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;celebithil/Rparadox&quot;</span>)</span></code></pre></div>
 </div>
 <div id="basic-usage" class="section level2">
 <h2>Basic Usage</h2>
 <p>The main workflow involves opening a file, reading the data, and then
 closing the file.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">library</span>(Rparadox)</span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co"># Get the path to an example database included with the package</span></span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>db_path <span class="ot">&lt;-</span> <span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="st">&quot;biolife.db&quot;</span>, <span class="at">package =</span> <span class="st">&quot;Rparadox&quot;</span>)</span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a></span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="co"># Open the file handle</span></span>
-<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>pxdoc <span class="ot">&lt;-</span> <span class="fu">pxlib_open_file</span>(db_path)</span>
-<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a></span>
-<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="co"># Read data and close the handle</span></span>
-<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(pxdoc)) {</span>
-<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>  biolife_data <span class="ot">&lt;-</span> <span class="fu">pxlib_get_data</span>(pxdoc)</span>
-<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>  <span class="fu">pxlib_close_file</span>(pxdoc)</span>
-<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>}</span>
-<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a></span>
-<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a><span class="co"># Display the first few rows of the resulting tibble</span></span>
-<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a><span class="fu">head</span>(biolife_data)</span>
-<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a><span class="co">#&gt; # A tibble: 6 × 8</span></span>
-<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a><span class="co">#&gt;   `Species No` Category Common_Name `Species Name` `Length (cm)` Length_In Notes</span></span>
-<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a><span class="co">#&gt;          &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;       &lt;chr&gt;                  &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;</span></span>
-<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a><span class="co">#&gt; 1        90020 Trigger… Clown Trig… Ballistoides …            50      19.7 &quot;Als…</span></span>
-<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a><span class="co">#&gt; 2        90030 Snapper  Red Emperor Lutjanus sebae            60      23.6 &quot;Cal…</span></span>
-<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a><span class="co">#&gt; 3        90050 Wrasse   Giant Maor… Cheilinus und…           229      90.2 &quot;Thi…</span></span>
-<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a><span class="co">#&gt; 4        90070 Angelfi… Blue Angel… Pomacanthus n…            30      11.8 &quot;Hab…</span></span>
-<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a><span class="co">#&gt; 5        90080 Cod      Lunartail … Variola louti             80      31.5 &quot;Als…</span></span>
-<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a><span class="co">#&gt; 6        90090 Scorpio… Firefish    Pterois volit…            38      15.0 &quot;Als…</span></span>
-<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a><span class="co">#&gt; # ℹ 1 more variable: Graphic &lt;blob&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">library</span>(Rparadox)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co"># Get the path to an example database included with the package</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>db_path <span class="ot">&lt;-</span> <span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="st">&quot;biolife.db&quot;</span>, <span class="at">package =</span> <span class="st">&quot;Rparadox&quot;</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co"># Open the file handle</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>pxdoc <span class="ot">&lt;-</span> <span class="fu">pxlib_open_file</span>(db_path)</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co"># Read data and close the handle</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(pxdoc)) {</span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>  biolife_data <span class="ot">&lt;-</span> <span class="fu">pxlib_get_data</span>(pxdoc)</span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>  <span class="fu">pxlib_close_file</span>(pxdoc)</span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>}</span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co"># Display the first few rows of the resulting tibble</span></span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="fu">head</span>(biolife_data)</span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt; # A tibble: 6 × 8</span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co">#&gt;   `Species No` Category Common_Name `Species Name` `Length (cm)` Length_In Notes</span></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="co">#&gt;          &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;       &lt;chr&gt;                  &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;</span></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="co">#&gt; 1        90020 Trigger… Clown Trig… Ballistoides …            50      19.7 &quot;Als…</span></span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co">#&gt; 2        90030 Snapper  Red Emperor Lutjanus sebae            60      23.6 &quot;Cal…</span></span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="co">#&gt; 3        90050 Wrasse   Giant Maor… Cheilinus und…           229      90.2 &quot;Thi…</span></span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="co">#&gt; 4        90070 Angelfi… Blue Angel… Pomacanthus n…            30      11.8 &quot;Hab…</span></span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="co">#&gt; 5        90080 Cod      Lunartail … Variola louti             80      31.5 &quot;Als…</span></span>
+<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a><span class="co">#&gt; 6        90090 Scorpio… Firefish    Pterois volit…            38      15.0 &quot;Als…</span></span>
+<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a><span class="co">#&gt; # ℹ 1 more variable: Graphic &lt;blob&gt;</span></span></code></pre></div>
 </div>
 <div id="handling-character-encodings" class="section level2">
 <h2>Handling Character Encodings</h2>
 <p>For legacy files with incorrect encoding information in the header,
 you can specify the correct encoding manually.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Example for a file known to be in the CP866 encoding</span></span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>pxdoc <span class="ot">&lt;-</span> <span class="fu">pxlib_open_file</span>(<span class="st">&quot;path/to/your/file.db&quot;</span>, <span class="at">encoding =</span> <span class="st">&quot;cp866&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Example for a file known to be in the CP866 encoding</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>pxdoc <span class="ot">&lt;-</span> <span class="fu">pxlib_open_file</span>(<span class="st">&quot;path/to/your/file.db&quot;</span>, <span class="at">encoding =</span> <span class="st">&quot;cp866&quot;</span>)</span></code></pre></div>
 <p>This ensures that text is correctly converted to UTF-8.</p>
 </div>
 
