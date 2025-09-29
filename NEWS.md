@@ -1,3 +1,34 @@
+# Rparadox 0.1.5
+
+## CRAN check Note fix
+
+* remove incorrect CRAN link in Readme.
+
+
+# Rparadox 0.1.4
+
+## Cosmetic fixes
+
+* Add misplaced picture link at Readme.Rmd.
+* Add pxlib URL to DESCRIPTION file.
+* Fix NEWS format.
+
+# Rparadox 0.1.3
+
+## New features
+
+* Added a high-level `read_paradox()` function for a simple, one-step workflow to read Paradox files. This is now the recommended function for most users.
+* Added a `pxlib_metadata()` function to retrieve database metadata (number of records, field details, encoding) without reading the entire dataset.
+
+## Bug fixes and improvements
+
+* The architecture for handling character encodings has been completely refactored.
+  The C-level code now returns raw character data, and all conversion to UTF-8 is handled reliably in R via the `stringi` package(ICU) instead of Riconv.
+  This fixes test failures on CRAN and improves robustness for files on various operating systems.
+* Added `stringi` to package imports.
+* Added extensive tests for the new `read_paradox()` and `pxlib_metadata()` functions.
+* Documentation and examples have been updated to reflect the new functions and recommended workflow.
+
 # Rparadox 0.1.2
 
 ## Bug fixes and improvements

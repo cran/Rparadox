@@ -1,6 +1,6 @@
 Package: Rparadox
 Title: Read Paradox Database Files into R
-Version: 0.1.2
+Version: 0.1.5
 Authors@R: 
     person(given = "Daniil",
            family = "Popov",
@@ -8,21 +8,22 @@ Authors@R:
            role = c("aut", "cre"))
 Description: Provides a simple and efficient way to read data from Paradox 
     database files (.db) directly into R as modern 'tibble' data frames. 
-    It uses the underlying 'pxlib' C library to handle the low-level file format 
+    It uses the underlying 'pxlib' C library, to handle the low-level file format 
     details and provides a clean, user-friendly R interface.
 License: GPL (>= 2)
 Encoding: UTF-8
 RoxygenNote: 7.3.3
-Imports: blob, hms, tibble
+Imports: blob, hms, tibble, stringi
 Suggests: rmarkdown, devtools, knitr, testthat (>= 3.0.0), usethis
 Config/testthat/edition: 3
-URL: https://github.com/celebithil/Rparadox
+URL: https://github.com/celebithil/Rparadox,
+        https://github.com/steinm/pxlib
 BugReports: https://github.com/celebithil/Rparadox/issues
 VignetteBuilder: knitr, rmarkdown
 NeedsCompilation: yes
-Packaged: 2025-09-22 07:33:56 UTC; celebithil
+Packaged: 2025-09-29 08:57:58 UTC; celebithil
 Author: Daniil Popov [aut, cre]
 Maintainer: Daniil Popov <popov.daniil@gmail.com>
 Depends: R (>= 3.5.0)
 Repository: CRAN
-Date/Publication: 2025-09-22 08:10:08 UTC
+Date/Publication: 2025-09-29 09:10:02 UTC

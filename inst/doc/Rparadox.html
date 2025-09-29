@@ -344,7 +344,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h2>Introduction</h2>
 <p>The Rparadox package provides tools to read data from Paradox
 database files (<code>.db</code>) directly into R. This vignette will
-walk you through the basic usage of the package.</p>
+walk you through the basic and advanced usage of the package.</p>
 </div>
 <div id="installation" class="section level2">
 <h2>Installation</h2>
@@ -354,44 +354,73 @@ walk you through the basic usage of the package.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># install.packages(&quot;devtools&quot;)</span></span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;celebithil/Rparadox&quot;</span>)</span></code></pre></div>
 </div>
-<div id="basic-usage" class="section level2">
-<h2>Basic Usage</h2>
-<p>The main workflow involves opening a file, reading the data, and then
-closing the file.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">library</span>(Rparadox)</span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co"># Get the path to an example database included with the package</span></span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>db_path <span class="ot">&lt;-</span> <span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="st">&quot;biolife.db&quot;</span>, <span class="at">package =</span> <span class="st">&quot;Rparadox&quot;</span>)</span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a></span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co"># Open the file handle</span></span>
-<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>pxdoc <span class="ot">&lt;-</span> <span class="fu">pxlib_open_file</span>(db_path)</span>
-<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a></span>
-<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co"># Read data and close the handle</span></span>
-<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(pxdoc)) {</span>
-<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>  biolife_data <span class="ot">&lt;-</span> <span class="fu">pxlib_get_data</span>(pxdoc)</span>
-<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>  <span class="fu">pxlib_close_file</span>(pxdoc)</span>
-<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>}</span>
-<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a></span>
-<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co"># Display the first few rows of the resulting tibble</span></span>
-<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="fu">head</span>(biolife_data)</span>
-<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt; # A tibble: 6 × 8</span></span>
-<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co">#&gt;   `Species No` Category Common_Name `Species Name` `Length (cm)` Length_In Notes</span></span>
-<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="co">#&gt;          &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;       &lt;chr&gt;                  &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;</span></span>
-<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="co">#&gt; 1        90020 Trigger… Clown Trig… Ballistoides …            50      19.7 &quot;Als…</span></span>
-<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co">#&gt; 2        90030 Snapper  Red Emperor Lutjanus sebae            60      23.6 &quot;Cal…</span></span>
-<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="co">#&gt; 3        90050 Wrasse   Giant Maor… Cheilinus und…           229      90.2 &quot;Thi…</span></span>
-<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="co">#&gt; 4        90070 Angelfi… Blue Angel… Pomacanthus n…            30      11.8 &quot;Hab…</span></span>
-<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="co">#&gt; 5        90080 Cod      Lunartail … Variola louti             80      31.5 &quot;Als…</span></span>
-<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a><span class="co">#&gt; 6        90090 Scorpio… Firefish    Pterois volit…            38      15.0 &quot;Als…</span></span>
-<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a><span class="co">#&gt; # ℹ 1 more variable: Graphic &lt;blob&gt;</span></span></code></pre></div>
+<div id="basic-usage-with-read_paradox" class="section level2">
+<h2>Basic Usage with <code>read_paradox()</code></h2>
+<p>The simplest way to read a Paradox file is with the
+<code>read_paradox()</code> wrapper function. It handles the entire
+workflow of opening the file, reading the data, and closing the
+connection for you.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Get the path to an example database included with the package</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>db_path <span class="ot">&lt;-</span> <span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="st">&quot;biolife.db&quot;</span>, <span class="at">package =</span> <span class="st">&quot;Rparadox&quot;</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co"># Read the data in a single step</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>biolife_data <span class="ot">&lt;-</span> <span class="fu">read_paradox</span>(db_path)</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co"># Display the first few rows of the resulting tibble</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="fu">head</span>(biolife_data)</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt; # A tibble: 6 × 8</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt;   `Species No` Category Common_Name `Species Name` `Length (cm)` Length_In Notes</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co">#&gt;          &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;       &lt;chr&gt;                  &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt; 1        90020 Trigger… Clown Trig… Ballistoides …            50      19.7 &quot;Als…</span></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co">#&gt; 2        90030 Snapper  Red Emperor Lutjanus sebae            60      23.6 &quot;Cal…</span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="co">#&gt; 3        90050 Wrasse   Giant Maor… Cheilinus und…           229      90.2 &quot;Thi…</span></span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co">#&gt; 4        90070 Angelfi… Blue Angel… Pomacanthus n…            30      11.8 &quot;Hab…</span></span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="co">#&gt; 5        90080 Cod      Lunartail … Variola louti             80      31.5 &quot;Als…</span></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt; 6        90090 Scorpio… Firefish    Pterois volit…            38      15.0 &quot;Als…</span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co">#&gt; # ℹ 1 more variable: Graphic &lt;blob&gt;</span></span></code></pre></div>
 </div>
 <div id="handling-character-encodings" class="section level2">
 <h2>Handling Character Encodings</h2>
 <p>For legacy files with incorrect encoding information in the header,
-you can specify the correct encoding manually.</p>
+you can specify the correct encoding manually with the
+<code>encoding</code> argument.</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Example for a file known to be in the CP866 encoding</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>pxdoc <span class="ot">&lt;-</span> <span class="fu">pxlib_open_file</span>(<span class="st">&quot;path/to/your/file.db&quot;</span>, <span class="at">encoding =</span> <span class="st">&quot;cp866&quot;</span>)</span></code></pre></div>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>my_data <span class="ot">&lt;-</span> <span class="fu">read_paradox</span>(<span class="st">&quot;path/to/your/file.db&quot;</span>, <span class="at">encoding =</span> <span class="st">&quot;cp866&quot;</span>)</span></code></pre></div>
 <p>This ensures that text is correctly converted to UTF-8.</p>
+</div>
+<div id="advanced-usage-metadata-and-manual-control" class="section level2">
+<h2>Advanced Usage: Metadata and Manual Control</h2>
+<p>If you need more control, for instance, to check a file’s metadata
+before committing to reading a large dataset, you can use the
+lower-level functions.</p>
+<p>The workflow is: 1. <code>pxlib_open_file()</code> to get a file
+handle. 2. <code>pxlib_metadata()</code> to inspect metadata (optional).
+3. <code>pxlib_get_data()</code> to read the data. 4.
+<code>pxlib_close_file()</code> to release the connection.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># This chunk uses the db_path defined in the previous chunk</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co"># Open the file handle</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>pxdoc <span class="ot">&lt;-</span> <span class="fu">pxlib_open_file</span>(db_path)</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(pxdoc)) {</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  <span class="co"># Get and print metadata</span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>  metadata <span class="ot">&lt;-</span> <span class="fu">pxlib_metadata</span>(pxdoc)</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>  <span class="fu">print</span>(metadata<span class="sc">$</span>fields)</span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>  </span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>  <span class="co"># Read the full dataset</span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>  data_from_handle <span class="ot">&lt;-</span> <span class="fu">pxlib_get_data</span>(pxdoc)</span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a>  </span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a>  <span class="co"># IMPORTANT: Always close the file handle</span></span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a>  <span class="fu">pxlib_close_file</span>(pxdoc)</span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a>}</span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a><span class="co">#&gt;           name type size</span></span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="co">#&gt; 1   Species No    6    8</span></span>
+<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a><span class="co">#&gt; 2     Category    1   15</span></span>
+<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a><span class="co">#&gt; 3  Common_Name    1   30</span></span>
+<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a><span class="co">#&gt; 4 Species Name    1   40</span></span>
+<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a><span class="co">#&gt; 5  Length (cm)    6    8</span></span>
+<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a><span class="co">#&gt; 6    Length_In    6    8</span></span>
+<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a><span class="co">#&gt; 7        Notes   12   60</span></span>
+<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a><span class="co">#&gt; 8      Graphic   16   10</span></span></code></pre></div>
 </div>
 
 

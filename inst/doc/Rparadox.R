@@ -3,6 +3,8 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+# Load the package once for the entire vignette
+library(Rparadox)
 
 ## ----eval=FALSE---------------------------------------------------------------
 # # stable version from CRAN
@@ -13,24 +15,33 @@ knitr::opts_chunk$set(
 # devtools::install_github("celebithil/Rparadox")
 
 ## ----basic-example------------------------------------------------------------
-library(Rparadox)
-
 # Get the path to an example database included with the package
 db_path <- system.file("extdata", "biolife.db", package = "Rparadox")
 
-# Open the file handle
-pxdoc <- pxlib_open_file(db_path)
-
-# Read data and close the handle
-if (!is.null(pxdoc)) {
-  biolife_data <- pxlib_get_data(pxdoc)
-  pxlib_close_file(pxdoc)
-}
+# Read the data in a single step
+biolife_data <- read_paradox(db_path)
 
 # Display the first few rows of the resulting tibble
 head(biolife_data)
 
 ## ----eval=FALSE---------------------------------------------------------------
 # # Example for a file known to be in the CP866 encoding
-# pxdoc <- pxlib_open_file("path/to/your/file.db", encoding = "cp866")
+# my_data <- read_paradox("path/to/your/file.db", encoding = "cp866")
+
+## ----advanced-example---------------------------------------------------------
+# This chunk uses the db_path defined in the previous chunk
+# Open the file handle
+pxdoc <- pxlib_open_file(db_path)
+
+if (!is.null(pxdoc)) {
+  # Get and print metadata
+  metadata <- pxlib_metadata(pxdoc)
+  print(metadata$fields)
+  
+  # Read the full dataset
+  data_from_handle <- pxlib_get_data(pxdoc)
+  
+  # IMPORTANT: Always close the file handle
+  pxlib_close_file(pxdoc)
+}
 
