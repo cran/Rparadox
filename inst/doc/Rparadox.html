@@ -48,8 +48,9 @@ overflow: visible;
 }
 </style>
 <style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -60,7 +61,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
 { counter-reset: source-line 0; }
@@ -344,7 +345,8 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h2>Introduction</h2>
 <p>The Rparadox package provides tools to read data from Paradox
 database files (<code>.db</code>) directly into R. This vignette will
-walk you through the basic and advanced usage of the package.</p>
+walk you through the basic and advanced usage of the package, including
+handling encrypted files and legacy encodings.</p>
 </div>
 <div id="installation" class="section level2">
 <h2>Installation</h2>
@@ -379,14 +381,26 @@ connection for you.</p>
 <span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt; 6        90090 Scorpio… Firefish    Pterois volit…            38      15.0 &quot;Als…</span></span>
 <span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co">#&gt; # ℹ 1 more variable: Graphic &lt;blob&gt;</span></span></code></pre></div>
 </div>
+<div id="reading-encrypted-files" class="section level2">
+<h2>Reading Encrypted Files</h2>
+<p>Rparadox supports reading password-protected <code>.db</code> files.
+To read such a file, provide the <code>password</code> argument to
+<code>read_paradox()</code>.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Example for an encrypted file</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>db_path <span class="ot">&lt;-</span> <span class="st">&quot;path/to/encrypted_file.db&quot;</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>my_data <span class="ot">&lt;-</span> <span class="fu">read_paradox</span>(db_path, <span class="at">password =</span> <span class="st">&quot;my_secret_password&quot;</span>)</span></code></pre></div>
+<p>If the file is encrypted and no password (or an incorrect one) is
+provided, the function will stop with an error message.</p>
+</div>
 <div id="handling-character-encodings" class="section level2">
 <h2>Handling Character Encodings</h2>
 <p>For legacy files with incorrect encoding information in the header,
 you can specify the correct encoding manually with the
 <code>encoding</code> argument.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Example for a file known to be in the CP866 encoding</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>my_data <span class="ot">&lt;-</span> <span class="fu">read_paradox</span>(<span class="st">&quot;path/to/your/file.db&quot;</span>, <span class="at">encoding =</span> <span class="st">&quot;cp866&quot;</span>)</span></code></pre></div>
-<p>This ensures that text is correctly converted to UTF-8.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># Example for a file known to be in the CP866 encoding</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>my_data <span class="ot">&lt;-</span> <span class="fu">read_paradox</span>(<span class="st">&quot;path/to/your/file.db&quot;</span>, <span class="at">encoding =</span> <span class="st">&quot;cp866&quot;</span>)</span></code></pre></div>
+<p>This ensures that text is correctly converted to UTF-8 using the
+<code>stringi</code> library.</p>
 </div>
 <div id="advanced-usage-metadata-and-manual-control" class="section level2">
 <h2>Advanced Usage: Metadata and Manual Control</h2>
@@ -397,30 +411,50 @@ lower-level functions.</p>
 handle. 2. <code>pxlib_metadata()</code> to inspect metadata (optional).
 3. <code>pxlib_get_data()</code> to read the data. 4.
 <code>pxlib_close_file()</code> to release the connection.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># This chunk uses the db_path defined in the previous chunk</span></span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co"># Open the file handle</span></span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>pxdoc <span class="ot">&lt;-</span> <span class="fu">pxlib_open_file</span>(db_path)</span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a></span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(pxdoc)) {</span>
-<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  <span class="co"># Get and print metadata</span></span>
-<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>  metadata <span class="ot">&lt;-</span> <span class="fu">pxlib_metadata</span>(pxdoc)</span>
-<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>  <span class="fu">print</span>(metadata<span class="sc">$</span>fields)</span>
-<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>  </span>
-<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>  <span class="co"># Read the full dataset</span></span>
-<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>  data_from_handle <span class="ot">&lt;-</span> <span class="fu">pxlib_get_data</span>(pxdoc)</span>
-<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a>  </span>
-<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a>  <span class="co"># IMPORTANT: Always close the file handle</span></span>
-<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a>  <span class="fu">pxlib_close_file</span>(pxdoc)</span>
-<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a>}</span>
-<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a><span class="co">#&gt;           name type size</span></span>
-<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="co">#&gt; 1   Species No    6    8</span></span>
-<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a><span class="co">#&gt; 2     Category    1   15</span></span>
-<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a><span class="co">#&gt; 3  Common_Name    1   30</span></span>
-<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a><span class="co">#&gt; 4 Species Name    1   40</span></span>
-<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a><span class="co">#&gt; 5  Length (cm)    6    8</span></span>
-<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a><span class="co">#&gt; 6    Length_In    6    8</span></span>
-<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a><span class="co">#&gt; 7        Notes   12   60</span></span>
-<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a><span class="co">#&gt; 8      Graphic   16   10</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># This chunk uses the db_path defined in the previous chunk</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co"># Open the file handle</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>pxdoc <span class="ot">&lt;-</span> <span class="fu">pxlib_open_file</span>(db_path)</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(pxdoc)) {</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>  <span class="co"># Get and print metadata</span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>  <span class="co"># This is fast and doesn&#39;t read the full table content</span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>  metadata <span class="ot">&lt;-</span> <span class="fu">pxlib_metadata</span>(pxdoc)</span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>  </span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;Records:&quot;</span>, metadata<span class="sc">$</span>num_records, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;Encoding:&quot;</span>, metadata<span class="sc">$</span>encoding, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a>  </span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a>  <span class="co"># Inspect field definitions (names, types, sizes)</span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a>  <span class="fu">print</span>(<span class="fu">head</span>(metadata<span class="sc">$</span>fields))</span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a>  </span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a>  <span class="co"># Read the data</span></span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a>  <span class="co"># Note: If using pxlib_get_data directly with encrypted files, </span></span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a>  <span class="co"># ensure you have set the password via appropriate C-calls or use read_paradox() wrapper.</span></span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a>  data <span class="ot">&lt;-</span> <span class="fu">pxlib_get_data</span>(pxdoc)</span>
+<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a>  </span>
+<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a>  <span class="co"># Close the file handle</span></span>
+<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a>  <span class="fu">pxlib_close_file</span>(pxdoc)</span>
+<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a>  </span>
+<span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a>  <span class="fu">head</span>(data)</span>
+<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a>}</span>
+<span id="cb6-26"><a href="#cb6-26" tabindex="-1"></a><span class="co">#&gt; Records: 28 </span></span>
+<span id="cb6-27"><a href="#cb6-27" tabindex="-1"></a><span class="co">#&gt; Encoding: CP437 </span></span>
+<span id="cb6-28"><a href="#cb6-28" tabindex="-1"></a><span class="co">#&gt;           name   type size</span></span>
+<span id="cb6-29"><a href="#cb6-29" tabindex="-1"></a><span class="co">#&gt; 1   Species No Number    8</span></span>
+<span id="cb6-30"><a href="#cb6-30" tabindex="-1"></a><span class="co">#&gt; 2     Category  Alpha   15</span></span>
+<span id="cb6-31"><a href="#cb6-31" tabindex="-1"></a><span class="co">#&gt; 3  Common_Name  Alpha   30</span></span>
+<span id="cb6-32"><a href="#cb6-32" tabindex="-1"></a><span class="co">#&gt; 4 Species Name  Alpha   40</span></span>
+<span id="cb6-33"><a href="#cb6-33" tabindex="-1"></a><span class="co">#&gt; 5  Length (cm) Number    8</span></span>
+<span id="cb6-34"><a href="#cb6-34" tabindex="-1"></a><span class="co">#&gt; 6    Length_In Number    8</span></span>
+<span id="cb6-35"><a href="#cb6-35" tabindex="-1"></a><span class="co">#&gt; # A tibble: 6 × 8</span></span>
+<span id="cb6-36"><a href="#cb6-36" tabindex="-1"></a><span class="co">#&gt;   `Species No` Category Common_Name `Species Name` `Length (cm)` Length_In Notes</span></span>
+<span id="cb6-37"><a href="#cb6-37" tabindex="-1"></a><span class="co">#&gt;          &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;       &lt;chr&gt;                  &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;</span></span>
+<span id="cb6-38"><a href="#cb6-38" tabindex="-1"></a><span class="co">#&gt; 1        90020 Trigger… Clown Trig… Ballistoides …            50      19.7 &quot;Als…</span></span>
+<span id="cb6-39"><a href="#cb6-39" tabindex="-1"></a><span class="co">#&gt; 2        90030 Snapper  Red Emperor Lutjanus sebae            60      23.6 &quot;Cal…</span></span>
+<span id="cb6-40"><a href="#cb6-40" tabindex="-1"></a><span class="co">#&gt; 3        90050 Wrasse   Giant Maor… Cheilinus und…           229      90.2 &quot;Thi…</span></span>
+<span id="cb6-41"><a href="#cb6-41" tabindex="-1"></a><span class="co">#&gt; 4        90070 Angelfi… Blue Angel… Pomacanthus n…            30      11.8 &quot;Hab…</span></span>
+<span id="cb6-42"><a href="#cb6-42" tabindex="-1"></a><span class="co">#&gt; 5        90080 Cod      Lunartail … Variola louti             80      31.5 &quot;Als…</span></span>
+<span id="cb6-43"><a href="#cb6-43" tabindex="-1"></a><span class="co">#&gt; 6        90090 Scorpio… Firefish    Pterois volit…            38      15.0 &quot;Als…</span></span>
+<span id="cb6-44"><a href="#cb6-44" tabindex="-1"></a><span class="co">#&gt; # ℹ 1 more variable: Graphic &lt;blob&gt;</span></span></code></pre></div>
 </div>
 
 

@@ -25,6 +25,11 @@ biolife_data <- read_paradox(db_path)
 head(biolife_data)
 
 ## ----eval=FALSE---------------------------------------------------------------
+# # Example for an encrypted file
+# db_path <- "path/to/encrypted_file.db"
+# my_data <- read_paradox(db_path, password = "my_secret_password")
+
+## ----eval=FALSE---------------------------------------------------------------
 # # Example for a file known to be in the CP866 encoding
 # my_data <- read_paradox("path/to/your/file.db", encoding = "cp866")
 
@@ -35,13 +40,23 @@ pxdoc <- pxlib_open_file(db_path)
 
 if (!is.null(pxdoc)) {
   # Get and print metadata
+  # This is fast and doesn't read the full table content
   metadata <- pxlib_metadata(pxdoc)
-  print(metadata$fields)
   
-  # Read the full dataset
-  data_from_handle <- pxlib_get_data(pxdoc)
+  cat("Records:", metadata$num_records, "\n")
+  cat("Encoding:", metadata$encoding, "\n")
   
-  # IMPORTANT: Always close the file handle
+  # Inspect field definitions (names, types, sizes)
+  print(head(metadata$fields))
+  
+  # Read the data
+  # Note: If using pxlib_get_data directly with encrypted files, 
+  # ensure you have set the password via appropriate C-calls or use read_paradox() wrapper.
+  data <- pxlib_get_data(pxdoc)
+  
+  # Close the file handle
   pxlib_close_file(pxdoc)
+  
+  head(data)
 }
 
