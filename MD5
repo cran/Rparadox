@@ -1,6 +1,6 @@
-3b69141eb3c01a8916ee17726005ea34 *DESCRIPTION
+3376ec0e32fd1b85587a392cc6599937 *DESCRIPTION
 709f195998b796741ad35082f3b03992 *NAMESPACE
-ac188d4dea00ae8a3bb01d9f63884614 *NEWS.md
+8ad22fa7d3b2be038062d9129f598174 *NEWS.md
 90032a6e87e30fa7e6135379f62632f5 *R/Rparadox-package.R
 98101f79029052a90aa949cc745ca361 *R/pxlib_close_file.R
 43a17f05a9885946ece329397fc53c56 *R/pxlib_get_data.R
@@ -8,7 +8,7 @@ e5a0d287abddd36c638b0920c3fc34a6 *R/pxlib_metadata.R
 22a73cdcd2c19b35ee9173fa4a37ec15 *R/pxlib_open_file.R
 1cd3b3cbdb9d3838619fb96c83cf21c7 *R/read_paradox.R
 0f10d9896b4daff5504bd455c5ecb864 *R/utils.R
-9f9250814e90021ff861e73c273b1e21 *README.md
+1176998d1508cb3cac9683f9e188c344 *README.md
 b0b84114319fc721cf065376a6e92793 *build/vignette.rds
 ff694b116ea69ecb71942a03ba1a0f35 *inst/WORDLIST
 f8e45ad61f7ba989bf2fe2f69d2bf0b8 *inst/doc/Rparadox.R
@@ -38,7 +38,7 @@ d63c4471e219b9677527f591d3414dd7 *man/pxlib_open_file.Rd
 ef5e483bfe259bb4a8baa4cd3a916205 *src/fileformat.h
 494ea8d602363046ca88c7fa9f04893e *src/gregor.c
 5a8d11b55800ee2ab7daa48d97857ea5 *src/init.c
-6e9eafe86094a07b53f42dfcbbd3d3b7 *src/interface.c
+f4f8b95f8d77f3af3532d54558b48913 *src/interface.c
 f8defdf15dc54a3e08eb484d306c8f7b *src/paradox-gsf.h
 52b04e1b8c79376e86396c5d7e2d5f42 *src/paradox-mp.h
 7b6c61dd36b03e55b63e6a647c6e7af2 *src/paradox.c
