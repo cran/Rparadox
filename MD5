@@ -1,6 +1,6 @@
-3376ec0e32fd1b85587a392cc6599937 *DESCRIPTION
+d014bdb6df35573b27b7637d71fcaa19 *DESCRIPTION
 709f195998b796741ad35082f3b03992 *NAMESPACE
-8ad22fa7d3b2be038062d9129f598174 *NEWS.md
+8d2949e628c7465cd6a72570d1df03ad *NEWS.md
 90032a6e87e30fa7e6135379f62632f5 *R/Rparadox-package.R
 98101f79029052a90aa949cc745ca361 *R/pxlib_close_file.R
 43a17f05a9885946ece329397fc53c56 *R/pxlib_get_data.R
@@ -38,7 +38,7 @@ d63c4471e219b9677527f591d3414dd7 *man/pxlib_open_file.Rd
 ef5e483bfe259bb4a8baa4cd3a916205 *src/fileformat.h
 494ea8d602363046ca88c7fa9f04893e *src/gregor.c
 5a8d11b55800ee2ab7daa48d97857ea5 *src/init.c
-f4f8b95f8d77f3af3532d54558b48913 *src/interface.c
+1bf1088e4870c942b012af42c3de4e67 *src/interface.c
 f8defdf15dc54a3e08eb484d306c8f7b *src/paradox-gsf.h
 52b04e1b8c79376e86396c5d7e2d5f42 *src/paradox-mp.h
 7b6c61dd36b03e55b63e6a647c6e7af2 *src/paradox.c
