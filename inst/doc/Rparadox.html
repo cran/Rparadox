@@ -343,10 +343,37 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<p>The Rparadox package provides tools to read data from Paradox
-database files (<code>.db</code>) directly into R. This vignette will
-walk you through the basic and advanced usage of the package, including
-handling encrypted files and legacy encodings.</p>
+<p><strong>Rparadox</strong> provides a simple and efficient way to read
+data from Paradox database files (<code>.db</code>) directly into R as
+modern <code>tibble</code> data frames. It uses the underlying
+<code>pxlib</code> C library to handle the low-level file format details
+and provides a clean, user-friendly R interface.</p>
+<p>This package is designed to “just work” for the most common use case:
+extracting the full dataset from a Paradox table, including its
+associated BLOB/memo file (<code>.mb</code>).</p>
+<div id="features" class="section level3">
+<h3>Features</h3>
+<ul>
+<li><strong>Direct Reading:</strong> Reads Paradox <code>.db</code>
+files without needing database drivers or external software.</li>
+<li><strong>Tibble Output:</strong> Returns data in the
+<code>tibble</code> format, fully compatible with the Tidyverse
+ecosystem.</li>
+<li><strong>Automatic BLOB Handling:</strong> Automatically detects,
+attaches, and reads data from associated memo/BLOB (<code>.mb</code>)
+files.</li>
+<li><strong>Encryption Support:</strong> Supports reading
+password-protected Paradox files.</li>
+<li><strong>Character Encoding Control:</strong> Automatically handles
+character encoding conversion to UTF-8 and allows manual override of the
+source encoding for files with incorrect headers.</li>
+<li><strong>Type Conversion:</strong> Correctly maps Paradox data types
+to their corresponding R types, including <code>Date</code>,
+<code>Time</code> (<code>hms</code>), <code>Timestamp</code>
+(<code>POSIXct</code>), <code>Logical</code>, <code>Integer</code>,
+<code>Numeric</code>, and binary <code>blob</code> objects.</li>
+</ul>
+</div>
 </div>
 <div id="installation" class="section level2">
 <h2>Installation</h2>
@@ -356,39 +383,52 @@ handling encrypted files and legacy encodings.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># install.packages(&quot;devtools&quot;)</span></span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">&quot;celebithil/Rparadox&quot;</span>)</span></code></pre></div>
 </div>
-<div id="basic-usage-with-read_paradox" class="section level2">
-<h2>Basic Usage with <code>read_paradox()</code></h2>
-<p>The simplest way to read a Paradox file is with the
-<code>read_paradox()</code> wrapper function. It handles the entire
-workflow of opening the file, reading the data, and closing the
-connection for you.</p>
+<div id="basic-usage-read_paradox" class="section level2">
+<h2>Basic Usage: <code>read_paradox()</code></h2>
+<p>The easiest way to read a Paradox file is with the high-level
+<code>read_paradox()</code> function. It handles opening the file,
+reading the data, and closing the connection in a single step.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="co"># Get the path to an example database included with the package</span></span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>db_path <span class="ot">&lt;-</span> <span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="st">&quot;biolife.db&quot;</span>, <span class="at">package =</span> <span class="st">&quot;Rparadox&quot;</span>)</span>
 <span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a></span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co"># Read the data in a single step</span></span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>biolife_data <span class="ot">&lt;-</span> <span class="fu">read_paradox</span>(db_path)</span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a></span>
-<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co"># Display the first few rows of the resulting tibble</span></span>
-<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="fu">head</span>(biolife_data)</span>
-<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt; # A tibble: 6 × 8</span></span>
-<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt;   `Species No` Category Common_Name `Species Name` `Length (cm)` Length_In Notes</span></span>
-<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co">#&gt;          &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;       &lt;chr&gt;                  &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;</span></span>
-<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt; 1        90020 Trigger… Clown Trig… Ballistoides …            50      19.7 &quot;Als…</span></span>
-<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co">#&gt; 2        90030 Snapper  Red Emperor Lutjanus sebae            60      23.6 &quot;Cal…</span></span>
-<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="co">#&gt; 3        90050 Wrasse   Giant Maor… Cheilinus und…           229      90.2 &quot;Thi…</span></span>
-<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co">#&gt; 4        90070 Angelfi… Blue Angel… Pomacanthus n…            30      11.8 &quot;Hab…</span></span>
-<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="co">#&gt; 5        90080 Cod      Lunartail … Variola louti             80      31.5 &quot;Als…</span></span>
-<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt; 6        90090 Scorpio… Firefish    Pterois volit…            38      15.0 &quot;Als…</span></span>
-<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co">#&gt; # ℹ 1 more variable: Graphic &lt;blob&gt;</span></span></code></pre></div>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co"># Read the data directly into a tibble</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co"># This automatically finds &#39;biolife.mb&#39; and handles data types.</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>biolife_data <span class="ot">&lt;-</span> <span class="fu">read_paradox</span>(db_path)</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co"># View the data</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="fu">print</span>(biolife_data)</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt; # A tibble: 28 × 8</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co">#&gt;    `Species No` Category      Common_Name `Species Name` `Length (cm)` Length_In</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt;           &lt;dbl&gt; &lt;chr&gt;         &lt;chr&gt;       &lt;chr&gt;                  &lt;dbl&gt;     &lt;dbl&gt;</span></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co">#&gt;  1        90020 Triggerfish   Clown Trig… Ballistoides …            50     19.7 </span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="co">#&gt;  2        90030 Snapper       Red Emperor Lutjanus sebae            60     23.6 </span></span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co">#&gt;  3        90050 Wrasse        Giant Maor… Cheilinus und…           229     90.2 </span></span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="co">#&gt;  4        90070 Angelfish     Blue Angel… Pomacanthus n…            30     11.8 </span></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt;  5        90080 Cod           Lunartail … Variola louti             80     31.5 </span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co">#&gt;  6        90090 Scorpionfish  Firefish    Pterois volit…            38     15.0 </span></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="co">#&gt;  7        90100 Butterflyfish Ornate But… Chaetodon Orn…            19      7.48</span></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="co">#&gt;  8        90110 Shark         Swell Shark Cephaloscylli…           102     40.2 </span></span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co">#&gt;  9        90120 Ray           Bat Ray     Myliobatis ca…            56     22.0 </span></span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="co">#&gt; 10        90130 Eel           California… Gymnothorax m…           150     59.1 </span></span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="co">#&gt; # ℹ 18 more rows</span></span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="co">#&gt; # ℹ 2 more variables: Notes &lt;chr&gt;, Graphic &lt;blob&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Plot raw image data</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">library</span>(magick)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt; Linking to ImageMagick 7.1.2.26</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt; Enabled features: cairo, fontconfig, freetype, fftw, heic, lcms, raw, rsvg, webp, x11</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt; Disabled features: ghostscript, pango</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt; Using 7 threads</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="fu">as.raw</span>(biolife_data<span class="sc">$</span>Graphic[[<span class="dv">1</span>]]) <span class="sc">|&gt;</span> <span class="fu">image_read</span>() <span class="sc">|&gt;</span> <span class="fu">plot</span>()</span></code></pre></div>
+<p><img role="img" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASAAAAEgCAIAAACb4TnXAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAgAElEQVR4nO3deVxN6R8H8E/7ghaVUpKSnaRQVMiWJcpu+NnGNnZhGIQsYwzJUCRksu9bZM8aSlIoS5L2VLTv2/P749xut1VmHGV836/+OPfcc8957rn307nnOc95HjHGGAgh/BCv7QIQ8l9GASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEASOERxQwQnhEAfv+jB492s3NrbZLQWpEjDFW22UgNZWXl2doaPj69WsA9MF9F+gI9j1xdHSMiIjgph8+fFirZSE1QgH7bmzcuNHe3j43N1dCQkJcXDwsLKy2S0Q+jwL2fYiOjnZ2duamx4wZ07hx49otD6khCtj3YebMmR8+fAAwe/ZsxlhsbOzBgwdru1Dk8yhg34H169dfuXIFgLq6er169Wq7OOQLUMDqOl9f3z///JObbtSoUb169Y4dOwZg4sSJtVouUiMUsLru6NGjWVlZ3PSIESP8/f1rtzzki1DA6joXFxduYu7cuQAoYN8XClidZmtrK7ygLCEhERwcnJiYyD00Ne1We+UiNUUBq7t8fX2vXr3KTRsYGCgqKgqfmjhxYsuWLWqpXOQLUMDqrsOHD+fl5XHTkpKS4uLip0+f5h7KyMjUXrnIF6CA1VFOTk579+4VPuzfv38tFCIxcZWmpq6urq2tbZMmTahx1j8gWdsFIJWI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" /><!-- --></p>
 </div>
 <div id="reading-encrypted-files" class="section level2">
 <h2>Reading Encrypted Files</h2>
-<p>Rparadox supports reading password-protected <code>.db</code> files.
-To read such a file, provide the <code>password</code> argument to
-<code>read_paradox()</code>.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># Example for an encrypted file</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>db_path <span class="ot">&lt;-</span> <span class="st">&quot;path/to/encrypted_file.db&quot;</span></span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>my_data <span class="ot">&lt;-</span> <span class="fu">read_paradox</span>(db_path, <span class="at">password =</span> <span class="st">&quot;my_secret_password&quot;</span>)</span></code></pre></div>
+<p>If your Paradox file is password-protected, provide the password
+using the <code>password</code> argument:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">library</span>(Rparadox)</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co"># Read a password-protected file</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>secure_data <span class="ot">&lt;-</span> <span class="fu">read_paradox</span>(<span class="st">&quot;path/to/encrypted.db&quot;</span>, <span class="at">password =</span> <span class="st">&quot;secret_password&quot;</span>)</span></code></pre></div>
 <p>If the file is encrypted and no password (or an incorrect one) is
 provided, the function will stop with an error message.</p>
 </div>
@@ -396,65 +436,79 @@ provided, the function will stop with an error message.</p>
 <h2>Handling Character Encodings</h2>
 <p>For legacy files with incorrect encoding information in the header,
 you can specify the correct encoding manually with the
-<code>encoding</code> argument.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># Example for a file known to be in the CP866 encoding</span></span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>my_data <span class="ot">&lt;-</span> <span class="fu">read_paradox</span>(<span class="st">&quot;path/to/your/file.db&quot;</span>, <span class="at">encoding =</span> <span class="st">&quot;cp866&quot;</span>)</span></code></pre></div>
-<p>This ensures that text is correctly converted to UTF-8 using the
-<code>stringi</code> library.</p>
+<code>encoding</code> parameter:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">library</span>(Rparadox)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co"># This tells the package to interpret the source data as CP866</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">read_paradox</span>(<span class="st">&quot;path/to/your/file.db&quot;</span>, <span class="at">encoding =</span> <span class="st">&quot;cp866&quot;</span>)</span></code></pre></div>
+<p>This ensures that all text fields are correctly converted to UTF-8 in
+the final <code>tibble</code>.</p>
 </div>
 <div id="advanced-usage-metadata-and-manual-control" class="section level2">
 <h2>Advanced Usage: Metadata and Manual Control</h2>
-<p>If you need more control, for instance, to check a file’s metadata
-before committing to reading a large dataset, you can use the
-lower-level functions.</p>
-<p>The workflow is: 1. <code>pxlib_open_file()</code> to get a file
-handle. 2. <code>pxlib_metadata()</code> to inspect metadata (optional).
-3. <code>pxlib_get_data()</code> to read the data. 4.
-<code>pxlib_close_file()</code> to release the connection.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># This chunk uses the db_path defined in the previous chunk</span></span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co"># Open the file handle</span></span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>pxdoc <span class="ot">&lt;-</span> <span class="fu">pxlib_open_file</span>(db_path)</span>
-<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a></span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(pxdoc)) {</span>
-<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>  <span class="co"># Get and print metadata</span></span>
-<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>  <span class="co"># This is fast and doesn&#39;t read the full table content</span></span>
-<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>  metadata <span class="ot">&lt;-</span> <span class="fu">pxlib_metadata</span>(pxdoc)</span>
-<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>  </span>
-<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;Records:&quot;</span>, metadata<span class="sc">$</span>num_records, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;Encoding:&quot;</span>, metadata<span class="sc">$</span>encoding, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
-<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a>  </span>
-<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a>  <span class="co"># Inspect field definitions (names, types, sizes)</span></span>
-<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a>  <span class="fu">print</span>(<span class="fu">head</span>(metadata<span class="sc">$</span>fields))</span>
-<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a>  </span>
-<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a>  <span class="co"># Read the data</span></span>
-<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a>  <span class="co"># Note: If using pxlib_get_data directly with encrypted files, </span></span>
-<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a>  <span class="co"># ensure you have set the password via appropriate C-calls or use read_paradox() wrapper.</span></span>
-<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a>  data <span class="ot">&lt;-</span> <span class="fu">pxlib_get_data</span>(pxdoc)</span>
-<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a>  </span>
-<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a>  <span class="co"># Close the file handle</span></span>
-<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a>  <span class="fu">pxlib_close_file</span>(pxdoc)</span>
-<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a>  </span>
-<span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a>  <span class="fu">head</span>(data)</span>
-<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a>}</span>
-<span id="cb6-26"><a href="#cb6-26" tabindex="-1"></a><span class="co">#&gt; Records: 28 </span></span>
-<span id="cb6-27"><a href="#cb6-27" tabindex="-1"></a><span class="co">#&gt; Encoding: CP437 </span></span>
-<span id="cb6-28"><a href="#cb6-28" tabindex="-1"></a><span class="co">#&gt;           name   type size</span></span>
-<span id="cb6-29"><a href="#cb6-29" tabindex="-1"></a><span class="co">#&gt; 1   Species No Number    8</span></span>
-<span id="cb6-30"><a href="#cb6-30" tabindex="-1"></a><span class="co">#&gt; 2     Category  Alpha   15</span></span>
-<span id="cb6-31"><a href="#cb6-31" tabindex="-1"></a><span class="co">#&gt; 3  Common_Name  Alpha   30</span></span>
-<span id="cb6-32"><a href="#cb6-32" tabindex="-1"></a><span class="co">#&gt; 4 Species Name  Alpha   40</span></span>
-<span id="cb6-33"><a href="#cb6-33" tabindex="-1"></a><span class="co">#&gt; 5  Length (cm) Number    8</span></span>
-<span id="cb6-34"><a href="#cb6-34" tabindex="-1"></a><span class="co">#&gt; 6    Length_In Number    8</span></span>
-<span id="cb6-35"><a href="#cb6-35" tabindex="-1"></a><span class="co">#&gt; # A tibble: 6 × 8</span></span>
-<span id="cb6-36"><a href="#cb6-36" tabindex="-1"></a><span class="co">#&gt;   `Species No` Category Common_Name `Species Name` `Length (cm)` Length_In Notes</span></span>
-<span id="cb6-37"><a href="#cb6-37" tabindex="-1"></a><span class="co">#&gt;          &lt;dbl&gt; &lt;chr&gt;    &lt;chr&gt;       &lt;chr&gt;                  &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;</span></span>
-<span id="cb6-38"><a href="#cb6-38" tabindex="-1"></a><span class="co">#&gt; 1        90020 Trigger… Clown Trig… Ballistoides …            50      19.7 &quot;Als…</span></span>
-<span id="cb6-39"><a href="#cb6-39" tabindex="-1"></a><span class="co">#&gt; 2        90030 Snapper  Red Emperor Lutjanus sebae            60      23.6 &quot;Cal…</span></span>
-<span id="cb6-40"><a href="#cb6-40" tabindex="-1"></a><span class="co">#&gt; 3        90050 Wrasse   Giant Maor… Cheilinus und…           229      90.2 &quot;Thi…</span></span>
-<span id="cb6-41"><a href="#cb6-41" tabindex="-1"></a><span class="co">#&gt; 4        90070 Angelfi… Blue Angel… Pomacanthus n…            30      11.8 &quot;Hab…</span></span>
-<span id="cb6-42"><a href="#cb6-42" tabindex="-1"></a><span class="co">#&gt; 5        90080 Cod      Lunartail … Variola louti             80      31.5 &quot;Als…</span></span>
-<span id="cb6-43"><a href="#cb6-43" tabindex="-1"></a><span class="co">#&gt; 6        90090 Scorpio… Firefish    Pterois volit…            38      15.0 &quot;Als…</span></span>
-<span id="cb6-44"><a href="#cb6-44" tabindex="-1"></a><span class="co">#&gt; # ℹ 1 more variable: Graphic &lt;blob&gt;</span></span></code></pre></div>
+<p>If you need more control — for instance, to inspect metadata before
+committing to reading a large dataset — you can use the lower-level
+functions.</p>
+<p>The workflow is:</p>
+<ol style="list-style-type: decimal">
+<li><code>pxlib_open_file()</code> to get a file handle.</li>
+<li><code>pxlib_metadata()</code> to inspect metadata (optional).</li>
+<li><code>pxlib_get_data()</code> to read the data.</li>
+<li><code>pxlib_close_file()</code> to release the connection.</li>
+</ol>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>db_path <span class="ot">&lt;-</span> <span class="fu">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="st">&quot;biolife.db&quot;</span>, <span class="at">package =</span> <span class="st">&quot;Rparadox&quot;</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="co"># Open the file and get a handle</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>pxdoc <span class="ot">&lt;-</span> <span class="fu">pxlib_open_file</span>(db_path)</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(pxdoc)) {</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>  <span class="co"># Get metadata without reading all the data</span></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>  metadata <span class="ot">&lt;-</span> <span class="fu">pxlib_metadata</span>(pxdoc)</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>  <span class="co"># Metadata includes human-readable field types and detected encoding</span></span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;Encoding:&quot;</span>, metadata<span class="sc">$</span>encoding, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">&quot;Number of records:&quot;</span>, metadata<span class="sc">$</span>num_records, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a>  <span class="fu">print</span>(<span class="fu">head</span>(metadata<span class="sc">$</span>fields))</span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a></span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a>  <span class="co"># Read the actual data</span></span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a>  data_table <span class="ot">&lt;-</span> <span class="fu">pxlib_get_data</span>(pxdoc)</span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a></span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a>  <span class="co"># Always close the file when you&#39;re done</span></span>
+<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a>  <span class="fu">pxlib_close_file</span>(pxdoc)</span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a></span>
+<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a>  <span class="fu">print</span>(data_table)</span>
+<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a>}</span>
+<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a><span class="co">#&gt; Encoding: CP437 </span></span>
+<span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a><span class="co">#&gt; Number of records: 28 </span></span>
+<span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a><span class="co">#&gt;           name   type size</span></span>
+<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a><span class="co">#&gt; 1   Species No Number    8</span></span>
+<span id="cb7-27"><a href="#cb7-27" tabindex="-1"></a><span class="co">#&gt; 2     Category  Alpha   15</span></span>
+<span id="cb7-28"><a href="#cb7-28" tabindex="-1"></a><span class="co">#&gt; 3  Common_Name  Alpha   30</span></span>
+<span id="cb7-29"><a href="#cb7-29" tabindex="-1"></a><span class="co">#&gt; 4 Species Name  Alpha   40</span></span>
+<span id="cb7-30"><a href="#cb7-30" tabindex="-1"></a><span class="co">#&gt; 5  Length (cm) Number    8</span></span>
+<span id="cb7-31"><a href="#cb7-31" tabindex="-1"></a><span class="co">#&gt; 6    Length_In Number    8</span></span>
+<span id="cb7-32"><a href="#cb7-32" tabindex="-1"></a><span class="co">#&gt; # A tibble: 28 × 8</span></span>
+<span id="cb7-33"><a href="#cb7-33" tabindex="-1"></a><span class="co">#&gt;    `Species No` Category      Common_Name `Species Name` `Length (cm)` Length_In</span></span>
+<span id="cb7-34"><a href="#cb7-34" tabindex="-1"></a><span class="co">#&gt;           &lt;dbl&gt; &lt;chr&gt;         &lt;chr&gt;       &lt;chr&gt;                  &lt;dbl&gt;     &lt;dbl&gt;</span></span>
+<span id="cb7-35"><a href="#cb7-35" tabindex="-1"></a><span class="co">#&gt;  1        90020 Triggerfish   Clown Trig… Ballistoides …            50     19.7 </span></span>
+<span id="cb7-36"><a href="#cb7-36" tabindex="-1"></a><span class="co">#&gt;  2        90030 Snapper       Red Emperor Lutjanus sebae            60     23.6 </span></span>
+<span id="cb7-37"><a href="#cb7-37" tabindex="-1"></a><span class="co">#&gt;  3        90050 Wrasse        Giant Maor… Cheilinus und…           229     90.2 </span></span>
+<span id="cb7-38"><a href="#cb7-38" tabindex="-1"></a><span class="co">#&gt;  4        90070 Angelfish     Blue Angel… Pomacanthus n…            30     11.8 </span></span>
+<span id="cb7-39"><a href="#cb7-39" tabindex="-1"></a><span class="co">#&gt;  5        90080 Cod           Lunartail … Variola louti             80     31.5 </span></span>
+<span id="cb7-40"><a href="#cb7-40" tabindex="-1"></a><span class="co">#&gt;  6        90090 Scorpionfish  Firefish    Pterois volit…            38     15.0 </span></span>
+<span id="cb7-41"><a href="#cb7-41" tabindex="-1"></a><span class="co">#&gt;  7        90100 Butterflyfish Ornate But… Chaetodon Orn…            19      7.48</span></span>
+<span id="cb7-42"><a href="#cb7-42" tabindex="-1"></a><span class="co">#&gt;  8        90110 Shark         Swell Shark Cephaloscylli…           102     40.2 </span></span>
+<span id="cb7-43"><a href="#cb7-43" tabindex="-1"></a><span class="co">#&gt;  9        90120 Ray           Bat Ray     Myliobatis ca…            56     22.0 </span></span>
+<span id="cb7-44"><a href="#cb7-44" tabindex="-1"></a><span class="co">#&gt; 10        90130 Eel           California… Gymnothorax m…           150     59.1 </span></span>
+<span id="cb7-45"><a href="#cb7-45" tabindex="-1"></a><span class="co">#&gt; # ℹ 18 more rows</span></span>
+<span id="cb7-46"><a href="#cb7-46" tabindex="-1"></a><span class="co">#&gt; # ℹ 2 more variables: Notes &lt;chr&gt;, Graphic &lt;blob&gt;</span></span></code></pre></div>
+</div>
+<div id="links" class="section level2">
+<h2>Links</h2>
+<ul>
+<li>pxlib C library: <a href="https://github.com/steinm/pxlib" class="uri">https://github.com/steinm/pxlib</a></li>
+<li>CRAN page: <a href="https://cran.r-project.org/package=Rparadox" class="uri">https://cran.r-project.org/package=Rparadox</a></li>
+<li>Bug reports: <a href="https://github.com/celebithil/Rparadox/issues" class="uri">https://github.com/celebithil/Rparadox/issues</a></li>
+</ul>
 </div>
 
 
